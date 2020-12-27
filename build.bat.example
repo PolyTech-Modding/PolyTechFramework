@@ -1,0 +1,4 @@
+@echo off
+copy /Y  "path\to\Poly Bridge 2\Poly Bridge 2_Data\Managed\Assembly-CSharp.dll" "Libraries"
+dotnet build
+copy /Y "bin\Debug\netstandard2.0\PolyTechFramework.dll" "path\to\Poly Bridge 2\BepInEx\plugins"
