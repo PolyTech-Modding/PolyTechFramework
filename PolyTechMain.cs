@@ -23,15 +23,7 @@ namespace PolyTechFramework
         public new const string
             PluginGuid = "polytech.polytechframework",
             PluginName = "PolyTech Framework",
-<<<<<<< HEAD
-<<<<<<< HEAD
-            PluginVersion = "0.8.0";
-=======
-            PluginVersion = "0.7.7.5";
->>>>>>> 4f73842... Made it much harder to accidentally cheat
-=======
-            PluginVersion = "0.8.0";
->>>>>>> 8632f6a... refactored harmony patches
+            PluginVersion = "0.8.1";
         private static BindingList<PolyTechMod>
             noncheatMods = new BindingList<PolyTechMod> { },
             cheatMods = new BindingList<PolyTechMod> { };
@@ -675,27 +667,17 @@ namespace PolyTechFramework
         }
 
 
-        [HarmonyPatch(typeof(GalleryUploadBody), MethodType.Constructor)]
+        [HarmonyPatch(typeof(Panel_ShareReplay), "CreateGalleryUploadBody")]
         [HarmonyPostfix]
-        private static void PatchGallery(GalleryUploadBody __instance, string build, string levelId, string itemId, bool win, float maxStress, int budget, byte[] video, byte[] videoPreview)
+        private static void PatchGalleryUploadBody(ref GalleryUploadBody __result)
         {
-            __instance.m_Build = build;
-            __instance.m_LevelId = levelId;
-            __instance.m_ItemId = itemId;
-            __instance.m_Result = (win ? "win" : "fail");
-            __instance.m_MaxStress = maxStress;
-            __instance.m_BudgetUsed = budget;
-            __instance.m_Video = video;
-            __instance.m_VideoPreview = videoPreview;
-
-            if (PolyTechMain.modEnabled.Value)
+            //ptfInstance.ptfLogger.LogMessage($"Uploading video to gallery, modCheated = {ptfInstance.modCheated}");
+            if (ptfInstance.modCheated)
             {
-                __instance.m_MaxStress = -42069;
-                __instance.m_BudgetUsed = int.MaxValue;
+                __result.m_MaxStress = 42069;
+                __result.m_BudgetUsed = int.MaxValue;
             }
         }
-
-
 
         [HarmonyPatch(typeof(SandboxLayoutData), "SerializePreBridgeBinary")]
         [HarmonyPrefix]
