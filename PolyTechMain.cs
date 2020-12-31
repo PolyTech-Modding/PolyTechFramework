@@ -469,6 +469,21 @@ namespace PolyTechFramework
             public Panel_PopUpMessage.OnChoiceDelegate cancelDelegate;
             public PopUpWarningCategory warningCategory;
         }
+
+        [HarmonyPatch(typeof(PopUpMessage), "Display", new Type[] { 
+            typeof(string), 
+            typeof(Panel_PopUpMessage.OnChoiceDelegate), 
+        })]
+        [HarmonyPrefix]
+        public static bool PopupMessageCancelButtonFix(
+            string message,
+            Panel_PopUpMessage.OnChoiceDelegate okDelegate
+        ){
+            PopUpMessage.Display(message, okDelegate, () => {}, PopUpWarningCategory.NONE);
+            GameUI.m_Instance.m_PopUpMessage.m_NeverShowAgainToggle.transform.parent.gameObject.SetActive(false);
+            return false;
+        }
+
         [HarmonyPatch(typeof(PopUpMessage), "Display", new Type[] { 
             typeof(string), 
             typeof(Panel_PopUpMessage.OnChoiceDelegate), 
