@@ -23,7 +23,7 @@ namespace PolyTechFramework
         public new const string
             PluginGuid = "polytech.polytechframework",
             PluginName = "PolyTech Framework",
-            PluginVersion = "0.8.1";
+            PluginVersion = "0.8.2";
         private static BindingList<PolyTechMod>
             noncheatMods = new BindingList<PolyTechMod> { },
             cheatMods = new BindingList<PolyTechMod> { };
@@ -837,10 +837,22 @@ namespace PolyTechFramework
             ptfInstance.ptfLogger.LogMessage($"Game Started with the following Cheat mods: {cheats}");
         }
 
-        [HarmonyPatch(typeof(SteamStatsAndAchievements), "UploadLeaderboardScore")]
-        [HarmonyPrefix]
-        public static bool uploadSteamScorePatch(int score, bool didBreak) {
-            return score >= leaderboardProtMin.Value;
+        [HarmonyPatch]
+        static class uploadSteamScorePatch
+        {
+            static bool Prepare()
+            {
+                return TargetMethod() != null;
+            }
+
+            static MethodInfo TargetMethod()
+            {
+                return AccessTools.Method(typeof(SteamStatsAndAchievements), "UploadLeaderboardScore");
+            }
+
+            static bool Prefix(int score, bool didBreak) {
+                return score >= leaderboardProtMin.Value;
+            }
         }
 
         [HarmonyPatch(typeof(LeaderBoards), "UploadScoreAsync")]
