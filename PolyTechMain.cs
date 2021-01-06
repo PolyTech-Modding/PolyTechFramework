@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
@@ -104,7 +104,7 @@ namespace PolyTechFramework
             enabledCheatTweaks = 0 + (forceCheat.Value ? 1 : 0) + (sandboxEverywhere.Value ? 1 : 0);
 
             this.modCheated = false;
-            this.repositoryUrl = "http://5124.mywire.org:5000/MoonlitJolteon/PolyTechFramework/";
+            this.repositoryUrl = "https://5124.mywire.org:5002/MoonlitJolteon/PolyTechFramework/";
 
             Harmony.CreateAndPatchAll(typeof(PolyTechMain));
 
@@ -260,7 +260,7 @@ namespace PolyTechFramework
             client.Headers.Add("User-Agent", "Nothing");
 
             // get latest release version
-            string repoReleaseUri = "http://5124.mywire.org:5000/api/v1/repos" + new Uri(plugin.repositoryUrl).AbsolutePath + "releases";
+            string repoReleaseUri = "https://5124.mywire.org:5002/api/v1/repos" + new Uri(plugin.repositoryUrl).AbsolutePath + "releases";
             string content;
             try
             {
