@@ -23,7 +23,7 @@ namespace PolyTechFramework
         public new const string
             PluginGuid = "polytech.polytechframework",
             PluginName = "PolyTech Framework",
-            PluginVersion = "0.8.2";
+            PluginVersion = "0.9.0";
         private static BindingList<PolyTechMod>
             noncheatMods = new BindingList<PolyTechMod> { },
             cheatMods = new BindingList<PolyTechMod> { };
@@ -104,7 +104,7 @@ namespace PolyTechFramework
             enabledCheatTweaks = 0 + (forceCheat.Value ? 1 : 0) + (sandboxEverywhere.Value ? 1 : 0);
 
             this.modCheated = false;
-            this.repositoryUrl = "https://5124.mywire.org:5002/MoonlitJolteon/PolyTechFramework/";
+            this.repositoryUrl = "https://github.com/PolyTech-Modding/PolyTechFramework/";
 
             Harmony.CreateAndPatchAll(typeof(PolyTechMain));
 
@@ -260,7 +260,7 @@ namespace PolyTechFramework
             client.Headers.Add("User-Agent", "Nothing");
 
             // get latest release version
-            string repoReleaseUri = "https://5124.mywire.org:5002/api/v1/repos" + new Uri(plugin.repositoryUrl).AbsolutePath + "releases";
+            string repoReleaseUri = "https://api.github.com/repos" + new Uri(plugin.repositoryUrl).AbsolutePath + "releases";
             string content;
             try
             {
@@ -339,19 +339,19 @@ namespace PolyTechFramework
         }
 
         [HarmonyPatch(typeof(GameManager), "StartManual")]
+        [HarmonyPostfix]
+        private static void GameStartPostfix(){
+            patchGameStart.game_started = true;
+            if (patchGameStart.modUpdates == null) return;
+            foreach (ModUpdate modUpdate in patchGameStart.modUpdates)
+            {
+                modUpdatePopup(modUpdate);
+            }
+        }
         private class patchGameStart
         {
             public static List<ModUpdate> modUpdates = new List<ModUpdate>();
             public static bool game_started = false;
-            static void Postfix()
-            {
-                game_started = true;
-                if (modUpdates == null) return;
-                foreach (ModUpdate modUpdate in modUpdates)
-                {
-                    modUpdatePopup(modUpdate);
-                }
-            }
 
 
         }
