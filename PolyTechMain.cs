@@ -115,9 +115,9 @@ namespace PolyTechFramework
             Logger.LogInfo($"Loaded {PluginName} v{PluginVersion}");
             this.isCheat = false;
             this.isEnabled = modEnabled.Value;
-            registerMod(this);
-
             ptfInstance = this;
+            
+            registerMod(this);
         }
 
         bool flag = false;
