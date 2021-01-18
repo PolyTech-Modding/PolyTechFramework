@@ -124,6 +124,10 @@ namespace PolyTechFramework
         private void Update()
         {
             PopupQueue.TryShowNextPopup();
+            if (numEnabledCheatMods() > 0 && Bridge.IsSimulating() && !BridgeCheat.m_Cheated){
+                GameStateSim.m_BudgetUsed = Mathf.RoundToInt(Budget.CalculateBridgeCost());
+			    BridgeCheat.m_Cheated = BridgeCheat.CheckForCheating((float)GameStateSim.m_BudgetUsed);
+            }
             if (!flag && globalToggleHotkey.Value.IsDown())
             {
                 flag = true;
@@ -360,6 +364,7 @@ namespace PolyTechFramework
         [HarmonyPrefix]
         private static bool PatchCheats(ref bool __result)
         {
+            ptfInstance.Logger.LogInfo("checking cheats");
             __result = true;
             ptfInstance.modCheated = ptfInstance.modCheated || (modEnabled.Value && numEnabledCheatMods() > 0) || (PolyTechMain.modEnabled.Value && enabledCheatTweaks > 0);
             return !ptfInstance.modCheated;
