@@ -364,7 +364,6 @@ namespace PolyTechFramework
         [HarmonyPrefix]
         private static bool PatchCheats(ref bool __result)
         {
-            ptfInstance.Logger.LogInfo("checking cheats");
             __result = true;
             ptfInstance.modCheated = ptfInstance.modCheated || (modEnabled.Value && numEnabledCheatMods() > 0) || (PolyTechMain.modEnabled.Value && enabledCheatTweaks > 0);
             return !ptfInstance.modCheated;
