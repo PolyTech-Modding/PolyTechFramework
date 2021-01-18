@@ -23,7 +23,7 @@ namespace PolyTechFramework
         public new const string
             PluginGuid = "polytech.polytechframework",
             PluginName = "PolyTech Framework",
-            PluginVersion = "0.9.0";
+            PluginVersion = "0.9.1";
         private static BindingList<PolyTechMod>
             noncheatMods = new BindingList<PolyTechMod> { },
             cheatMods = new BindingList<PolyTechMod> { };
@@ -124,6 +124,10 @@ namespace PolyTechFramework
         private void Update()
         {
             PopupQueue.TryShowNextPopup();
+            if (numEnabledCheatMods() > 0 && Bridge.IsSimulating() && !BridgeCheat.m_Cheated){
+                GameStateSim.m_BudgetUsed = Mathf.RoundToInt(Budget.CalculateBridgeCost());
+			    BridgeCheat.m_Cheated = BridgeCheat.CheckForCheating((float)GameStateSim.m_BudgetUsed);
+            }
             if (!flag && globalToggleHotkey.Value.IsDown())
             {
                 flag = true;
