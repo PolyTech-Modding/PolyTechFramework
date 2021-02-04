@@ -48,8 +48,21 @@ namespace PolyTechFramework
 
         public System.Version GetVersion()
         {
+            System.Version version;
             string parsed = this.tag_name.ToLower().Replace("v", "");
-            return new System.Version(parsed);
+            int pos;
+		    pos = parsed.IndexOf("-");
+		    if (pos != -1) parsed = parsed.Substring(0, pos);
+		    pos = parsed.IndexOf("+");;
+		    if (pos != -1) parsed = parsed.Substring(0, pos);
+            try {
+                version = new System.Version(parsed);
+            }
+            catch (FormatException ex){
+                PolyTechMain.ptfInstance.ptfLogger.LogError("Invalid Version found while checking for mod updates, using fallback value 0.0.0");
+                version = new System.Version("0.0.0");
+            }
+            return version;
         }
     }
 

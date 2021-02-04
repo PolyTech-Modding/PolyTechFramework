@@ -23,7 +23,7 @@ namespace PolyTechFramework
         public new const string
             PluginGuid = "polytech.polytechframework",
             PluginName = "PolyTech Framework",
-            PluginVersion = "0.9.1";
+            PluginVersion = "0.9.2";
         private static BindingList<PolyTechMod>
             noncheatMods = new BindingList<PolyTechMod> { },
             cheatMods = new BindingList<PolyTechMod> { };
