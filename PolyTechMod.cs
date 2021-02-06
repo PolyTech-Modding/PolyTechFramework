@@ -41,5 +41,6 @@ namespace PolyTechFramework
         public bool isEnabled;
         public bool isCheat;
         public string repositoryUrl;
+        public string[] authors;
     }
 }
