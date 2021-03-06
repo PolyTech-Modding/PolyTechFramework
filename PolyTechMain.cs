@@ -24,7 +24,7 @@ namespace PolyTechFramework
         public new const string
             PluginGuid = "polytech.polytechframework",
             PluginName = "PolyTech Framework",
-            PluginVersion = "0.9.3";
+            PluginVersion = "0.9.4";
         private static BindingList<PolyTechMod>
             noncheatMods = new BindingList<PolyTechMod> { },
             cheatMods = new BindingList<PolyTechMod> { };
@@ -707,7 +707,7 @@ namespace PolyTechFramework
         {
             ptfInstance.ptfLogger.LogMessage($"Layout pre version: {__instance.m_Version}");
             if (GameStateManager.GetState() != GameState.BUILD && GameStateManager.GetState() != GameState.SANDBOX) return;
-            if (cheatMods.Where(x => x.isEnabled).Count() == 0) return;
+            if (noncheatMods.Where(x => x.shouldSaveData).Count() + cheatMods.Where(x => x.shouldSaveData).Count() == 0) return;
             __instance.m_Version *= -1;
             //PopUpMessage.Display("You have cheat mods enabled, do you want to store them?\n(This will make the layout incompatible with vanilla PB2)", yes, no);
             ptfInstance.ptfLogger.LogMessage($"Version after cheat question: {__instance.m_Version.ToString()}");
@@ -718,10 +718,41 @@ namespace PolyTechFramework
         private static void patchSerializerTwo(SandboxLayoutData __instance, List<byte> bytes)
         {
             ptfInstance.ptfLogger.LogMessage($"Layout post version: {__instance.m_Version}");
+            
+            // add number of mods stored
+            //bytes.AddRange(ByteSerializer.SerializeInt(noncheatMods.Where(x => x.shouldSaveData).Count() + cheatMods.Where(x => x.shouldSaveData).Count()));
 
-            string[] mods = cheatMods.Where(x => x.isEnabled).Select(x => $"{x.Info.Metadata.Name}\u058D{x.Info.Metadata.Version}\u058D{x.getSettings()}").ToArray();
+            // add mod data for each mod
+            
+            // make sure to be backwards compatible!
+            List<string> modData = cheatMods.Where(x => x.isEnabled).Select(x => $"{x.Info.Metadata.Name}\u058D{x.Info.Metadata.Version}\u058D{x.getSettings()}").ToList();
+            modData.AddRange(noncheatMods.Where(x => x.shouldSaveData).Select(x => $"{x.Info.Metadata.Name}\u058D{x.Info.Metadata.Version}\u058D{x.getSettings()}").ToList());
+            string[] mods = modData.ToArray();
+            
             if (__instance.m_Version >= 0) return;
             bytes.AddRange(ByteSerializer.SerializeStrings(mods));
+            
+            bytes.AddRange(ByteSerializer.SerializeInt(modData.Count));
+            foreach (var mod in noncheatMods){
+                if (mod.isEnabled && mod.shouldSaveData){
+                    bytes.AddRange(ByteSerializer.SerializeString(
+                        $"{mod.Info.Metadata.Name}\u058D{mod.Info.Metadata.Version}"
+                    ));
+                    bytes.AddRange(ByteSerializer.SerializeByteArray(
+                        mod.saveData()
+                    ));
+                }
+            }
+            foreach (var mod in cheatMods){
+                if (mod.isEnabled && mod.shouldSaveData){
+                    bytes.AddRange(ByteSerializer.SerializeString(
+                        $"{mod.Info.Metadata.Name}\u058D{mod.Info.Metadata.Version}"
+                    ));
+                    bytes.AddRange(ByteSerializer.SerializeByteArray(
+                        mod.saveData()
+                    ));
+                }
+            }
             ptfInstance.ptfLogger.LogMessage($"Serialized {mods.Length.ToString()} Mod Names");
         }
 
@@ -762,16 +793,41 @@ namespace PolyTechFramework
 
                 ptfInstance.ptfLogger.LogInfo($" -- {str.Replace("\u058D", " - v")}");
 
-                var currMod = cheatMods.Where(p => p.Info.Metadata.Name == name).First();
+                var currMod = cheatMods.Where(p => p.Info.Metadata.Name == name).FirstOrDefault();
+                if (currMod == null) currMod = noncheatMods.Where(p => p.Info.Metadata.Name == name).FirstOrDefault();
 
                 ptfInstance.checkMods(0, name, version, settings, currMod);
+            }
+            if (offset == bytes.Length) return;
+            int extraSaveDataCount = ByteSerializer.DeserializeInt(bytes, ref offset);
+            if (extraSaveDataCount == 0) return;
+            
+            ptfInstance.Logger.LogInfo($"Layout created with custom data from mods: ");
+            
+            for (int i = 0; i < extraSaveDataCount; i++){
+                string modIdentifier = ByteSerializer.DeserializeString(bytes, ref offset);
+                byte[] customModSaveData = ByteSerializer.DeserializeByteArray(bytes, ref offset);
+                
+                string[] partsOfMod = modIdentifier.Split('\u058D');
+                string name = partsOfMod.Length >= 1 ? partsOfMod[0] : null;
+                string version = partsOfMod.Length >= 2 ? partsOfMod[1] : null;
+
+                ptfInstance.Logger.LogInfo($" -- {name} - v{version}");
+
+                var currMod = cheatMods.Where(p => p.Info.Metadata.Name == name).FirstOrDefault();
+                if (currMod == null) currMod = noncheatMods.Where(p => p.Info.Metadata.Name == name).FirstOrDefault();
+
+                if (currMod == null) return;
+                if (currMod.Info.Metadata.Version.ToString() != version) return;
+
+                currMod.loadData(customModSaveData);
             }
         }
         
 
         void checkMods(int step, string name, string version, string settings, PolyTechMod currMod)
         {
-            if (step <= 0 && currMod.Info.Metadata.Name != name) missingMod(name, version, settings, currMod);
+            if (currMod == null || (step <= 0 && currMod.Info.Metadata.Name != name)) missingMod(name, version, settings, currMod);
             else if (step <= 1 && currMod.Info.Metadata.Version.ToString() != version) wrongVersion(name, version, settings, currMod);
             else if (step <= 2 && !currMod.isEnabled) notEnabled(name, version, settings, currMod);
             else if (step <= 3 && currMod.getSettings() != settings) wrongSettings(name, version, settings, currMod);
@@ -782,7 +838,7 @@ namespace PolyTechFramework
             ptfInstance.ptfLogger.LogWarning("Mod in layout not present.");
             PopUpMessage.Display(
                 $"Mod ({name}) in layout not present.",
-                () => checkMods(1, name, version, settings, currMod)
+                () => {}
             );
         }
 
