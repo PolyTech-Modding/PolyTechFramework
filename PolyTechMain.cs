@@ -726,7 +726,7 @@ namespace PolyTechFramework
             
             // make sure to be backwards compatible!
             List<string> modData = cheatMods.Where(x => x.isEnabled).Select(x => $"{x.Info.Metadata.Name}\u058D{x.Info.Metadata.Version}\u058D{x.getSettings()}").ToList();
-            modData.AddRange(noncheatMods.Where(x => x.shouldSaveData).Select(x => $"{x.Info.Metadata.Name}\u058D{x.Info.Metadata.Version}\u058D{x.getSettings()}").ToList());
+            modData.AddRange(noncheatMods.Where(x => x.shouldSaveData && x.isEnabled).Select(x => $"{x.Info.Metadata.Name}\u058D{x.Info.Metadata.Version}\u058D{x.getSettings()}").ToList());
             string[] mods = modData.ToArray();
             
             if (__instance.m_Version >= 0) return;
