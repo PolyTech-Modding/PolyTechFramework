@@ -38,9 +38,17 @@ namespace PolyTechFramework
             PopUpWarning.Display("Something tried to automatically set the settings for a mod, but the mod doesn't support this feature. Try setting them manually.", PopUpWarningCategory.OLDER_PHYSICS_ENGINE);
         }
 
+        public virtual byte[] saveData(){
+            return new byte[] {};
+        }
+
+        public virtual void loadData(byte[] bytes){
+            return;
+        }
         public bool isEnabled;
         public bool isCheat;
         public string repositoryUrl;
         public string[] authors;
+        public bool shouldSaveData;
     }
 }
