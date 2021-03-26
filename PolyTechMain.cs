@@ -24,7 +24,7 @@ namespace PolyTechFramework
         public new const string
             PluginGuid = "polytech.polytechframework",
             PluginName = "PolyTech Framework",
-            PluginVersion = "0.9.4";
+            PluginVersion = "0.9.5";
         private static BindingList<PolyTechMod>
             noncheatMods = new BindingList<PolyTechMod> { },
             cheatMods = new BindingList<PolyTechMod> { };
@@ -707,7 +707,7 @@ namespace PolyTechFramework
         {
             ptfInstance.ptfLogger.LogMessage($"Layout pre version: {__instance.m_Version}");
             if (GameStateManager.GetState() != GameState.BUILD && GameStateManager.GetState() != GameState.SANDBOX) return;
-            if (noncheatMods.Where(x => x.shouldSaveData).Count() + cheatMods.Where(x => x.shouldSaveData).Count() == 0) return;
+            if (noncheatMods.Where(x => x.shouldSaveData).Count() + cheatMods.Where(x => x.isEnabled).Count() == 0) return;
             __instance.m_Version *= -1;
             //PopUpMessage.Display("You have cheat mods enabled, do you want to store them?\n(This will make the layout incompatible with vanilla PB2)", yes, no);
             ptfInstance.ptfLogger.LogMessage($"Version after cheat question: {__instance.m_Version.ToString()}");
@@ -732,7 +732,10 @@ namespace PolyTechFramework
             if (__instance.m_Version >= 0) return;
             bytes.AddRange(ByteSerializer.SerializeStrings(mods));
             
-            bytes.AddRange(ByteSerializer.SerializeInt(modData.Count));
+            // add an int indicating the number of mods that will save binary data
+            int modsSavingBinary = noncheatMods.Where(x => x.shouldSaveData).Count() + cheatMods.Where(x => x.shouldSaveData).Count();
+            bytes.AddRange(ByteSerializer.SerializeInt(modsSavingBinary));
+            
             foreach (var mod in noncheatMods){
                 if (mod.isEnabled && mod.shouldSaveData){
                     bytes.AddRange(ByteSerializer.SerializeString(
