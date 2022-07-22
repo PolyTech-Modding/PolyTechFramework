@@ -24,7 +24,7 @@ namespace PolyTechFramework
         public new const string
             PluginGuid = "polytech.polytechframework",
             PluginName = "PolyTech Framework",
-            PluginVersion = "0.9.5";
+            PluginVersion = "0.9.6";
         private static BindingList<PolyTechMod>
             noncheatMods = new BindingList<PolyTechMod> { },
             cheatMods = new BindingList<PolyTechMod> { };
@@ -78,6 +78,8 @@ namespace PolyTechFramework
             polybridge
         }
 
+        Harmony harmony;
+
         public void Awake()
         {
             moddedWatermark = Config.Bind(moddedWatermarkDef, watermarks.polytech, new ConfigDescription("Selected Watermark"));
@@ -107,7 +109,9 @@ namespace PolyTechFramework
             this.modCheated = false;
             this.repositoryUrl = "https://github.com/PolyTech-Modding/PolyTechFramework/";
 
-            Harmony.CreateAndPatchAll(typeof(PolyTechMain));
+            harmony = new Harmony(PluginGuid);
+            harmony.PatchAll(typeof(PolyTechMain));
+            harmony.PatchAll(typeof(PolyTechMain).Assembly);
 
             PolyTechUtils.setModdedSimSpeeds();
             PolyTechUtils.setReplaysModded();
@@ -701,13 +705,17 @@ namespace PolyTechFramework
             }
         }
 
+        public static bool isSavingAnyModData() {
+            return noncheatMods.Where(x => x.isEnabled && x.shouldSaveData).Count() + cheatMods.Where(x => x.isEnabled).Count() > 0;
+        }
+
         [HarmonyPatch(typeof(SandboxLayoutData), "SerializePreBridgeBinary")]
         [HarmonyPrefix]
         static void patchSerializerOne(SandboxLayoutData __instance, List<byte> bytes)
         {
             ptfInstance.ptfLogger.LogMessage($"Layout pre version: {__instance.m_Version}");
             if (GameStateManager.GetState() != GameState.BUILD && GameStateManager.GetState() != GameState.SANDBOX) return;
-            if (noncheatMods.Where(x => x.shouldSaveData).Count() + cheatMods.Where(x => x.isEnabled).Count() == 0) return;
+            if (!isSavingAnyModData()) return;
             __instance.m_Version *= -1;
             //PopUpMessage.Display("You have cheat mods enabled, do you want to store them?\n(This will make the layout incompatible with vanilla PB2)", yes, no);
             ptfInstance.ptfLogger.LogMessage($"Version after cheat question: {__instance.m_Version.ToString()}");
@@ -1009,6 +1017,52 @@ namespace PolyTechFramework
             }
             return true;
         }
+
+        [HarmonyPatch]
+        static class areModsInstalledPatch
+        {
+            static bool Prepare()
+            {
+                return TargetMethod() != null;
+            }
+
+            static MethodInfo TargetMethod()
+            {
+                return AccessTools.Method(typeof(GameManager), "AreModsInstalled");
+            }
+
+            static void Postfix(bool __result) {
+                __result = true;
+            }
+        }
+
+        [HarmonyPatch(typeof(Panel_WorkshopSubmit), "Submit")]
+        static class submitPatch {
+            static bool state = false;
+            static bool Prefix() {
+                if (state) {
+                    state = false;
+                    return true;
+                }
+
+                if (isSavingAnyModData()) {
+                    PopUpMessage.Display(
+                        "This level contains modded data, are you sure you would like to upload it to the workshop?",
+                        () => {
+                            state = true;
+                            GameUI.m_Instance.m_WorkshopSubmit.Submit();
+                        },
+                        () => {}
+                    );
+                }
+                else {
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
     }
 
 
