@@ -24,7 +24,7 @@ namespace PolyTechFramework
         public new const string
             PluginGuid = "polytech.polytechframework",
             PluginName = "PolyTech Framework",
-            PluginVersion = "0.9.6";
+            PluginVersion = "0.9.7";
         private static BindingList<PolyTechMod>
             noncheatMods = new BindingList<PolyTechMod> { },
             cheatMods = new BindingList<PolyTechMod> { };
@@ -963,7 +963,8 @@ namespace PolyTechFramework
 
             static MethodInfo TargetMethod()
             {
-                return AccessTools.Method(typeof(SteamStatsAndAchievements), "UploadLeaderboardScore");
+                var steamStatsType = typeof(GameStateManager).Assembly.GetType("SteamStatsAndAchievements");
+                return AccessTools.Method(steamStatsType, "UploadLeaderboardScore");
             }
 
             static bool Prefix(int score, bool didBreak) {
