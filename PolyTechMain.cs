@@ -914,40 +914,15 @@ namespace PolyTechFramework
         {
             string cosmetics = "";
             string cheats = "";
-            
-            // load credit values
-            TMPro.TextMeshProUGUI titleCredits = GameUI.m_Instance.m_Settings.m_CreditsPanel.transform
-            .Find("Mask/Credits/Titles")
-            .GetComponent<TMPro.TextMeshProUGUI>(); 
-            
-            TMPro.TextMeshProUGUI nameCredits = GameUI.m_Instance.m_Settings.m_CreditsPanel.transform
-            .Find("Mask/Credits/Names")
-            .GetComponent<TMPro.TextMeshProUGUI>();
-
-            // aligning things properly
-            titleCredits.text = titleCredits.text + "\n\n\n\n\n";
-            nameCredits.text = nameCredits.text.TrimEnd('\n') + "\nArglin Kampling\n\n";
 
             foreach (PolyTechMod mod in PolyTechMain.noncheatMods)
             {
                 cosmetics += $"\n{mod.Info.Metadata.Name} - v{mod.Info.Metadata.Version}";
-                if (mod.authors != null){
-                    titleCredits.text += $"{mod.Info.Metadata.Name}\n";
-                    nameCredits.text += String.Join("\n", mod.authors) + "\n\n";
-                    titleCredits.text += new string('\n', mod.authors.Length);
-                }
             }
             foreach (PolyTechMod mod in PolyTechMain.cheatMods)
             {
                 cheats += $"\n{mod.Info.Metadata.Name} - v{mod.Info.Metadata.Version}";
-                if (mod.authors != null){
-                    titleCredits.text += $"{mod.Info.Metadata.Name}\n";
-                    nameCredits.text += String.Join("\n", mod.authors) + "\n\n";
-                    titleCredits.text += new string('\n', mod.authors.Length);
-                }
             }
-            titleCredits.text += "\n\n";
-            nameCredits.text += "\n\n";
 
             ptfInstance.ptfLogger.LogMessage($"Game Started with the following Cosmetic mods: {cosmetics}");
             ptfInstance.ptfLogger.LogMessage($"Game Started with the following Cheat mods: {cheats}");
