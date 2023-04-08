@@ -37,7 +37,7 @@ namespace PolyTechFramework
             forceCheatDef = new ConfigDefinition("PolyTech Framework", "Force Cheat Flag"),
             sandboxEverywhereDef = new ConfigDefinition("PolyTech Framework", "Sandbox Everywhere"),
             globalToggleHotkeyDef = new ConfigDefinition("PolyTech Framework", "Global Toggle Hotkey"),
-            updateBlockDef = new ConfigDefinition("PolyTech Framework", "Remove Mod Update Notifications"),
+            checkModUpdatesDef = new ConfigDefinition("PolyTech Framework", "Check for Mod Updates"),
             leaderboardProtMinDef = new ConfigDefinition("Leaderboard Protection", "Minimum Score"),
             leaderboardCheckDef = new ConfigDefinition("Leaderboard Protection", "Confirm Before Upload"),
             leaderboardBlockDef = new ConfigDefinition("Leaderboard Protection", "Block All Scores");
@@ -50,7 +50,7 @@ namespace PolyTechFramework
             sandboxEverywhere,
             leaderboardCheck,
             leaderboardBlock,
-            updateBlock;
+            checkModUpdates;
         public static ConfigEntry<int>
             leaderboardProtMin;
         public static ConfigEntry<BepInEx.Configuration.KeyboardShortcut>
@@ -97,7 +97,7 @@ namespace PolyTechFramework
             sandboxEverywhere.SettingChanged += sandboxEverywhereToggle;
 
             globalToggleHotkey = Config.Bind(globalToggleHotkeyDef, new BepInEx.Configuration.KeyboardShortcut(KeyCode.BackQuote, KeyCode.LeftAlt), new ConfigDescription("Keybind used to toggle mods without opening the config menu."));
-            updateBlock = Config.Bind(updateBlockDef, false, new ConfigDescription("Prevents the mod update notifications from appearing at launch when out of date mods are being used"));
+            checkModUpdates = Config.Bind(checkModUpdatesDef, true, new ConfigDescription("Checks if new versions of installed mods are available on game startup"));
             leaderboardProtMin = Config.Bind(leaderboardProtMinDef, 71, new ConfigDescription("Minimum value allowed to upload to leaderboard. 71 is the minimum to protect from automatic shadowbans."));
             leaderboardProtMin.SettingChanged += onLeaderboardProtChange;
             leaderboardCheck = Config.Bind(leaderboardCheckDef, false, new ConfigDescription("If checked, the game will confirm with the user before uploading scores to the leaderboard."));
@@ -268,7 +268,7 @@ namespace PolyTechFramework
 
         public static void checkForModUpdate(PolyTechMod plugin)
         {
-            if(updateBlock.Value) return;
+            if(!checkModUpdates.Value) return;
             if (plugin.repositoryUrl == null) return;
             var client = new WebClient();
             client.Headers.Add("User-Agent", "Nothing");
