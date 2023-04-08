@@ -939,6 +939,7 @@ namespace PolyTechFramework
             static MethodInfo TargetMethod()
             {
                 var steamStatsType = typeof(GameStateManager).Assembly.GetType("SteamStatsAndAchievements");
+                if (steamStatsType == null) return null;
                 return AccessTools.Method(steamStatsType, "UploadLeaderboardScore");
             }
 
