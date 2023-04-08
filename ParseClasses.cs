@@ -58,7 +58,8 @@ namespace PolyTechFramework
             try {
                 version = new System.Version(parsed);
             }
-            catch (FormatException ex){
+            catch (FormatException)
+            {
                 PolyTechMain.ptfInstance.ptfLogger.LogError("Invalid Version found while checking for mod updates, using fallback value 0.0.0");
                 version = new System.Version("0.0.0");
             }
