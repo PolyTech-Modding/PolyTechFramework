@@ -24,7 +24,7 @@ namespace PolyTechFramework
         public new const string
             PluginGuid = "polytech.polytechframework",
             PluginName = "PolyTech Framework",
-            PluginVersion = "0.9.7";
+            PluginVersion = "0.9.8";
         private static BindingList<PolyTechMod>
             noncheatMods = new BindingList<PolyTechMod> { },
             cheatMods = new BindingList<PolyTechMod> { };
@@ -398,7 +398,7 @@ namespace PolyTechFramework
 
         [HarmonyPatch(typeof(Panel_ShareReplay), "DoFFMpeg")]
         [HarmonyPrefix]
-        private static void PatchWatermark(string inputBasePath, ref string watermarkPath, int videoKbps)
+        private static void PatchWatermark(string inputBasePath, ref string watermarkPath)
         {
             string watermarkFolder = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "watermarks");
             string watermarkName;
@@ -696,17 +696,6 @@ namespace PolyTechFramework
         }
 
 
-        [HarmonyPatch(typeof(Panel_ShareReplay), "CreateGalleryUploadBody")]
-        [HarmonyPostfix]
-        private static void PatchGalleryUploadBody(ref GalleryUploadBody __result)
-        {
-            //ptfInstance.ptfLogger.LogMessage($"Uploading video to gallery, modCheated = {ptfInstance.modCheated}");
-            if (ptfInstance.modCheated)
-            {
-                __result.m_MaxStress = 42069;
-                __result.m_BudgetUsed = int.MaxValue;
-            }
-        }
 
         public static bool isSavingAnyModData() {
             return noncheatMods.Where(x => x.isEnabled && x.shouldSaveData).Count() + cheatMods.Where(x => x.isEnabled).Count() > 0;
@@ -941,13 +930,18 @@ namespace PolyTechFramework
 
             static MethodInfo TargetMethod()
             {
-                var steamStatsType = typeof(GameStateManager).Assembly.GetType("SteamStatsAndAchievements");
-                if (steamStatsType == null) return null;
-                return AccessTools.Method(steamStatsType, "UploadLeaderboardScore");
+                var steamLeaderboardsType = typeof(GameStateManager).Assembly.GetType("SteamLeaderboards");
+                if (steamLeaderboardsType == null) return null;
+                return AccessTools.Method(steamLeaderboardsType, "UploadLeaderboardScore");
             }
 
-            static bool Prefix(int score, bool didBreak) {
-                return score >= leaderboardProtMin.Value;
+            static bool Prefix(string levelId, int score, bool didBreak, Action<bool> onComplete) {
+                if (score < leaderboardProtMin.Value)
+                {
+                    onComplete(false);
+                    return false;
+                }
+                return true;
             }
         }
 
